@@ -2,9 +2,18 @@
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 #include "index.h"
 
 using namespace std;
+
+class NodeMap
+{
+public:
+    int d;
+    int name;
+    NodeMap *parent;
+};
 
 bool isexisted(int &temp, vector<int> &list);
 
@@ -18,7 +27,7 @@ int main(int argc, char *argv[])
     int temp = V;
     int min, MinPoint;
     int map[PointNum][PointNum] = {0};
-    int MinMap[PointNum] = {0};
+    NodeMap MinMap[PointNum] = {0};
     vector<int> CheckList, UncheckList;
 
     map[A][B] = 12;
@@ -60,7 +69,10 @@ int main(int argc, char *argv[])
         {
             for(j = 0; j < PointNum; j++)
             {
-                MinMap[j] = map[temp][j];
+                MinMap[j].d = map[temp][j];
+                if(j != temp)
+                MinMap[j].parent = &MinMap[temp];
+                MinMap[j].name = j;
 
                 if(map[temp][j] < min && temp != j)
                 {
@@ -82,11 +94,15 @@ int main(int argc, char *argv[])
                 if(!isexisted(j, CheckList))
                 {
                     dist = map[temp][j];
-                    MinMap[j] = MinMap[temp] + dist < MinMap[j] ? MinMap[temp] + dist :  MinMap[j];
-
-                    if(MinMap[j] < min)
+                    if(MinMap[temp].d + dist < MinMap[j].d)
                     {
-                        min = MinMap[j];
+                        MinMap[j].d = MinMap[temp].d + dist;
+                        MinMap[j].parent = &MinMap[temp];
+                    }
+
+                    if(MinMap[j].d < min)
+                    {
+                        min = MinMap[j].d;
                         MinPoint = j;
                     }
                 }
@@ -101,7 +117,19 @@ int main(int argc, char *argv[])
 
     for(i = 0; i < PointNum; i++)
     {
-        printf("(%c, %c) = %d\n", 'A' + V, 'A' + i, MinMap[i]);
+        NodeMap *node = &MinMap[i];
+        cout << "Min Dist " << char('A' + V) << "," << char('A' + i) << " ";
+        cout << MinMap[i].d << "  ";
+
+        cout << "Path: ";
+
+        while(node != NULL)
+        {
+            usleep(1000);
+            cout << char('A' + node->name) << " ";
+            node = node->parent;
+        }
+        cout << endl;
     }
 
     return 0;
